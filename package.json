@@ -1,0 +1,15 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "cncc backend",
+  "main": "server.js",
+  "scripts": {
+    "test": "dev"
+  },
+  "type": "module",
+  "author": "shashi preetham",
+  "license": "ISC",
+  "dependencies": {
+    "mongoose": "^8.13.2"
+  }
+}
