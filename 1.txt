@@ -1,0 +1,245 @@
+import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
+
+const ProductSchema = new Schema({
+  productName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  serialNumber: {
+    type: String,
+    trim: true
+  },
+  warrantyYears: {
+    type: Number,
+    min: 0,
+    default: 0
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 1 // Assuming quantity must be at least 1
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0
+  }
+}, { _id: false }); // No separate ID for sub-documents unless needed
+
+const InvoiceSchema = new Schema({
+  purchaseDate: { // Renamed from 'Date of Purchase'
+    type: Date,
+    required: true,
+    default: Date.now
+  },
+  companyName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  orderOrSerialNumber: { // Combined as per image note
+    type: String, // Use String as serial numbers can be alphanumeric
+    trim: true
+  },
+  vendorName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  contactNumber: {
+    type: String, // String is better for phone numbers
+    trim: true
+  },
+  address: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  invoiceFileUrl: { // For the path/URL from Multer
+    type: String,
+    trim: true
+  },
+  additionalDetails: {
+    type: String,
+    trim: true
+  },
+  allowEditing: {
+    type: Boolean,
+    default: false // Defaulting to not allowed seems safer
+  },
+  products: {
+    type: [ProductSchema],
+    required: true,
+    validate: [v => Array.isArray(v) && v.length > 0, 'Invoice must have at least one product.']
+  },
+  totalAmount: {
+    type: Number,
+    required: true,
+    min: 0
+  }
+}, {
+  timestamps: true // Adds createdAt and updatedAt fields automatically
+});
+
+const Invoice = model('Invoice', InvoiceSchema);
+
+export default Invoice;import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
+
+const ItemSchema = new Schema({
+  description: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  quantity: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  rate: {
+    type: Number,
+    required: true,
+    min: 0
+  }
+}, { _id: false });
+
+const PurchaseOrderSchema = new Schema({
+  orderDate: {
+    type: Date,
+    required: true,
+    default: Date.now
+  },
+  fromAddress: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  vendorName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  contactNumber: {
+    type: String,
+    trim: true
+  },
+  gstNumber: {
+    type: String,
+    trim: true
+  },
+  purchaseOrderNumber: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
+  items: {
+    type: [ItemSchema],
+    required: true,
+    validate: [v => Array.isArray(v) && v.length > 0, 'Purchase order must have at least one item.']
+  },
+  totalAmount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  purchaseOrderFileUrl: {
+    type: String,
+    trim: true
+  }
+}, {
+  timestamps: true // Adds createdAt and updatedAt automatically
+});
+
+const PurchaseOrder = model('PurchaseOrder', PurchaseOrderSchema);
+
+export default PurchaseOrder;import { Schema as _Schema, model } from 'mongoose';
+const Schema = _Schema;
+
+const StockRegisterSchema = new Schema({
+  articleName: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  entryDate: {
+    type: Date,
+    required: true,
+    default: Date.now
+  },
+  particulars: {
+    companyName: {
+      type: String,
+      trim: true
+    },
+    address: {
+      type: String,
+      trim: true
+    },
+    productDetails: {
+      type: String,
+      trim: true
+    }
+  },
+  voucherOrBillNumber: {
+    type: String,
+    required: true,
+    trim: true
+  },
+  rate: {
+    cost: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+    cgst: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    sgst: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+    totalRate: { // Storing calculated total as requested
+      type: Number,
+      required: true,
+      min: 0
+    }
+  },
+  receiptNumber: {
+    type: String, // Using String for flexibility (e.g., R001) though image says Number
+    trim: true
+  },
+  pageNumber: {
+    type: Number,
+    min: 1
+  },
+  billingDate: {
+    type: Date,
+    required: true
+  },
+  photoUrl: { // Storing the URL/path from Multer
+    type: String,
+    trim: true
+  }
+}, {
+  timestamps: true // Automatically adds createdAt and updatedAt
+});
+
+// Optional: Middleware to calculate totalRate before saving
+StockRegisterSchema.pre('save', function(next) {
+  if (this.isModified('rate.cost') || this.isModified('rate.cgst') || this.isModified('rate.sgst') || this.isNew) {
+    this.rate.totalRate = (this.rate.cost || 0) + (this.rate.cgst || 0) + (this.rate.sgst || 0);
+  }
+  next();
+});
+
+
+const StockRegister = model('StockRegister', StockRegisterSchema);
+
+export default StockRegister;  this is my file structure give me all the code for the given schema models and also give me the middle ware, authorization, create user model and also give me the signin and signup of the user the user should have only the password and username use bcrypt js . routes and also server modules use multer for the storage of the photos and jpgs and photos create three folders separately for storing each the file and use route protection not access the backend by an unauthorized user and also create advanced backend features use mongodb local hostt servvaer also give me the folder structure for the given code please give me the neat and correct ccode where we can connect the backend and also it should run with no errors 

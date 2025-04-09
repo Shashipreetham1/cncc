@@ -47,14 +47,14 @@ const StockRegisterSchema = new Schema({
       default: 0,
       min: 0
     },
-    totalRate: { // Storing calculated total as requested
+    totalRate: { // Storing calculated total
       type: Number,
-      required: true,
+      required: true, // Make required as it's calculated
       min: 0
     }
   },
   receiptNumber: {
-    type: String, // Using String for flexibility (e.g., R001) though image says Number
+    type: String,
     trim: true
   },
   pageNumber: {
@@ -68,13 +68,20 @@ const StockRegisterSchema = new Schema({
   photoUrl: { // Storing the URL/path from Multer
     type: String,
     trim: true
+  },
+   // Reference to the user who created this entry (optional but good practice)
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   }
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt
 });
 
-// Optional: Middleware to calculate totalRate before saving
-StockRegisterSchema.pre('save', function(next) {
+// Middleware to calculate totalRate before saving
+StockRegisterSchema.pre('validate', function(next) {
+  // Calculate total rate whenever cost, cgst or sgst changes, or on creation
   if (this.isModified('rate.cost') || this.isModified('rate.cgst') || this.isModified('rate.sgst') || this.isNew) {
     this.rate.totalRate = (this.rate.cost || 0) + (this.rate.cgst || 0) + (this.rate.sgst || 0);
   }

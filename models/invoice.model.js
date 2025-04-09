@@ -78,6 +78,12 @@ const InvoiceSchema = new Schema({
     type: Number,
     required: true,
     min: 0
+  },
+  // Reference to the user who created this invoice (optional but good practice)
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   }
 }, {
   timestamps: true // Adds createdAt and updatedAt fields automatically

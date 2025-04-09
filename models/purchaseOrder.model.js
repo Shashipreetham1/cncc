@@ -46,7 +46,8 @@ const PurchaseOrderSchema = new Schema({
   purchaseOrderNumber: {
     type: String,
     required: true,
-    unique: true,
+    // Consider if this should be unique per user or globally
+    // unique: true, // Uncomment if it must be globally unique
     trim: true
   },
   items: {
@@ -62,10 +63,20 @@ const PurchaseOrderSchema = new Schema({
   purchaseOrderFileUrl: {
     type: String,
     trim: true
+  },
+  // Reference to the user who created this PO (optional but good practice)
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
   }
 }, {
   timestamps: true // Adds createdAt and updatedAt automatically
 });
+
+// Optional: Add index if you frequently query by PO number and user
+// PurchaseOrderSchema.index({ purchaseOrderNumber: 1, createdBy: 1 }, { unique: true });
+
 
 const PurchaseOrder = model('PurchaseOrder', PurchaseOrderSchema);
 
