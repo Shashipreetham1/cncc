@@ -1,245 +1,448 @@
-import { Schema as _Schema, model } from 'mongoose';
-const Schema = _Schema;
+Okay, here are examples of how to structure your requests in Postman for all the routes defined in your backend code.
 
-const ProductSchema = new Schema({
-  productName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  serialNumber: {
-    type: String,
-    trim: true
-  },
-  warrantyYears: {
-    type: Number,
-    min: 0,
-    default: 0
-  },
-  quantity: {
-    type: Number,
-    required: true,
-    min: 1 // Assuming quantity must be at least 1
-  },
-  price: {
-    type: Number,
-    required: true,
-    min: 0
-  }
-}, { _id: false }); // No separate ID for sub-documents unless needed
+I. Postman Setup
 
-const InvoiceSchema = new Schema({
-  purchaseDate: { // Renamed from 'Date of Purchase'
-    type: Date,
-    required: true,
-    default: Date.now
-  },
-  companyName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  orderOrSerialNumber: { // Combined as per image note
-    type: String, // Use String as serial numbers can be alphanumeric
-    trim: true
-  },
-  vendorName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  contactNumber: {
-    type: String, // String is better for phone numbers
-    trim: true
-  },
-  address: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  invoiceFileUrl: { // For the path/URL from Multer
-    type: String,
-    trim: true
-  },
-  additionalDetails: {
-    type: String,
-    trim: true
-  },
-  allowEditing: {
-    type: Boolean,
-    default: false // Defaulting to not allowed seems safer
-  },
-  products: {
-    type: [ProductSchema],
-    required: true,
-    validate: [v => Array.isArray(v) && v.length > 0, 'Invoice must have at least one product.']
-  },
-  totalAmount: {
-    type: Number,
-    required: true,
-    min: 0
-  }
-}, {
-  timestamps: true // Adds createdAt and updatedAt fields automatically
+Environment: Create a Postman Environment (e.g., "Backend Dev") to store variables.
+
+Variables: Add the following variables to your environment:
+
+baseUrl: http://localhost:5000 (or your server's address and port)
+
+authToken: (Leave empty initially, will be set after sign-in)
+
+invoiceId: (Leave empty, set after creating an invoice)
+
+poId: (Leave empty, set after creating a purchase order)
+
+stockEntryId: (Leave empty, set after creating a stock entry)
+
+Select Environment: Make sure your created environment is selected in the top-right corner of Postman.
+
+II. Authentication Requests (/api/auth)
+
+Sign Up (Register User)
+
+Purpose: Create a new user account.
+
+Method: POST
+
+URL: {{baseUrl}}/api/auth/signup
+
+Headers:
+
+Content-Type: application/json
+
+Body: (Select raw and JSON)
+
+{
+    "username": "testuser",
+    "password": "password123"
+}
+
+
+Tests (Optional but Recommended): Add this in the "Tests" tab to automatically save the token:
+
+pm.test("Status code is 201", function () {
+    pm.response.to.have.status(201);
 });
-
-const Invoice = model('Invoice', InvoiceSchema);
-
-export default Invoice;import { Schema as _Schema, model } from 'mongoose';
-const Schema = _Schema;
-
-const ItemSchema = new Schema({
-  description: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  quantity: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  rate: {
-    type: Number,
-    required: true,
-    min: 0
-  }
-}, { _id: false });
-
-const PurchaseOrderSchema = new Schema({
-  orderDate: {
-    type: Date,
-    required: true,
-    default: Date.now
-  },
-  fromAddress: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  vendorName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  contactNumber: {
-    type: String,
-    trim: true
-  },
-  gstNumber: {
-    type: String,
-    trim: true
-  },
-  purchaseOrderNumber: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
-  },
-  items: {
-    type: [ItemSchema],
-    required: true,
-    validate: [v => Array.isArray(v) && v.length > 0, 'Purchase order must have at least one item.']
-  },
-  totalAmount: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  purchaseOrderFileUrl: {
-    type: String,
-    trim: true
-  }
-}, {
-  timestamps: true // Adds createdAt and updatedAt automatically
-});
-
-const PurchaseOrder = model('PurchaseOrder', PurchaseOrderSchema);
-
-export default PurchaseOrder;import { Schema as _Schema, model } from 'mongoose';
-const Schema = _Schema;
-
-const StockRegisterSchema = new Schema({
-  articleName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  entryDate: {
-    type: Date,
-    required: true,
-    default: Date.now
-  },
-  particulars: {
-    companyName: {
-      type: String,
-      trim: true
-    },
-    address: {
-      type: String,
-      trim: true
-    },
-    productDetails: {
-      type: String,
-      trim: true
+if (pm.response.code === 201) {
+    var jsonData = pm.response.json();
+    if (jsonData.token) {
+        pm.environment.set("authToken", jsonData.token);
+        console.log("Auth Token set!");
     }
-  },
-  voucherOrBillNumber: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  rate: {
-    cost: {
-      type: Number,
-      required: true,
-      min: 0
-    },
-    cgst: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    sgst: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-    totalRate: { // Storing calculated total as requested
-      type: Number,
-      required: true,
-      min: 0
+}
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+JavaScript
+IGNORE_WHEN_COPYING_END
+
+Sign In (Login User)
+
+Purpose: Log in and get an authentication token.
+
+Method: POST
+
+URL: {{baseUrl}}/api/auth/signin
+
+Headers:
+
+Content-Type: application/json
+
+Body: (Select raw and JSON)
+
+{
+    "username": "testuser",
+    "password": "password123"
+}
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+Json
+IGNORE_WHEN_COPYING_END
+
+Tests (Optional but Recommended): Add this in the "Tests" tab:
+
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+if (pm.response.code === 200) {
+    var jsonData = pm.response.json();
+    if (jsonData.token) {
+        pm.environment.set("authToken", jsonData.token);
+        console.log("Auth Token set!");
+    } else {
+         console.log("Token not found in response.");
     }
-  },
-  receiptNumber: {
-    type: String, // Using String for flexibility (e.g., R001) though image says Number
-    trim: true
-  },
-  pageNumber: {
-    type: Number,
-    min: 1
-  },
-  billingDate: {
-    type: Date,
-    required: true
-  },
-  photoUrl: { // Storing the URL/path from Multer
-    type: String,
-    trim: true
-  }
-}, {
-  timestamps: true // Automatically adds createdAt and updatedAt
-});
+} else {
+    console.log("Sign in failed with status: " + pm.response.code);
+}
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+JavaScript
+IGNORE_WHEN_COPYING_END
 
-// Optional: Middleware to calculate totalRate before saving
-StockRegisterSchema.pre('save', function(next) {
-  if (this.isModified('rate.cost') || this.isModified('rate.cgst') || this.isModified('rate.sgst') || this.isNew) {
-    this.rate.totalRate = (this.rate.cost || 0) + (this.rate.cgst || 0) + (this.rate.sgst || 0);
-  }
-  next();
-});
+Note: After a successful sign-in, the {{authToken}} variable in your environment should be populated.
 
+Get User Profile
 
-const StockRegister = model('StockRegister', StockRegisterSchema);
+Purpose: Get the profile information of the logged-in user.
 
-export default StockRegister;  this is my file structure give me all the code for the given schema models and also give me the middle ware, authorization, create user model and also give me the signin and signup of the user the user should have only the password and username use bcrypt js . routes and also server modules use multer for the storage of the photos and jpgs and photos create three folders separately for storing each the file and use route protection not access the backend by an unauthorized user and also create advanced backend features use mongodb local hostt servvaer also give me the folder structure for the given code please give me the neat and correct ccode where we can connect the backend and also it should run with no errors 
+Method: GET
+
+URL: {{baseUrl}}/api/auth/profile
+
+Headers:
+
+Authorization: Bearer {{authToken}}
+
+Body: None
+
+III. Invoice Requests (/api/invoices)
+
+(Remember to Sign In first to get a valid authToken)
+
+Create Invoice
+
+Purpose: Add a new invoice record with an optional file upload.
+
+Method: POST
+
+URL: {{baseUrl}}/api/invoices
+
+Headers:
+
+Authorization: Bearer {{authToken}}
+
+(Postman automatically sets Content-Type: multipart/form-data when using form-data)
+
+Body: (Select form-data)
+
+companyName (Text): Tech Solutions Inc.
+
+vendorName (Text): Component Supplies Ltd.
+
+address (Text): 123 Supply Street, Techville
+
+totalAmount (Text): 1575.50
+
+purchaseDate (Text): 2023-10-27 (YYYY-MM-DD format or ISO string)
+
+orderOrSerialNumber (Text): ORD-98765
+
+contactNumber (Text): 555-123-4567
+
+additionalDetails (Text): Urgent order for Project X.
+
+allowEditing (Text): false
+
+products (Text): [{"productName":"Laptop","serialNumber":"LT123","warrantyYears":1,"quantity":1,"price":1200},{"productName":"Keyboard","quantity":5,"price":75.10}] (Note: Send the array as a JSON string)
+
+invoiceFile (File): (Click 'Select Files' and choose your PDF/JPG invoice file)
+
+Tests (Optional): Save the ID of the created invoice:
+
+if (pm.response.code === 201) {
+    var jsonData = pm.response.json();
+    if (jsonData._id) {
+        pm.environment.set("invoiceId", jsonData._id);
+        console.log("Invoice ID set: " + jsonData._id);
+    }
+}
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+JavaScript
+IGNORE_WHEN_COPYING_END
+
+Get All Invoices
+
+Purpose: Retrieve all invoices created by the logged-in user.
+
+Method: GET
+
+URL: {{baseUrl}}/api/invoices
+
+Headers:
+
+Authorization: Bearer {{authToken}}
+
+Body: None
+
+Get Single Invoice
+
+Purpose: Retrieve details of a specific invoice.
+
+Method: GET
+
+URL: {{baseUrl}}/api/invoices/{{invoiceId}} (Make sure invoiceId is set in your environment)
+
+Headers:
+
+Authorization: Bearer {{authToken}}
+
+Body: None
+
+Update Invoice
+
+Purpose: Modify an existing invoice (can include changing text fields and/or uploading a new file, which deletes the old one).
+
+Method: PUT
+
+URL: {{baseUrl}}/api/invoices/{{invoiceId}}
+
+Headers:
+
+Authorization: Bearer {{authToken}}
+
+Body: (Select form-data) - Include only the fields you want to change.
+
+vendorName (Text): Updated Vendor Name LLC
+
+additionalDetails (Text): Updated details.
+
+products (Text): [{"productName":"Laptop","serialNumber":"LT123-UPD","warrantyYears":2,"quantity":1,"price":1250}] (Example: updating product details)
+
+invoiceFile (File): (Optional: Select a new file if you want to replace the existing one)
+
+Note: If you don't send the invoiceFile field, the existing file (if any) will remain associated with the invoice.
+
+Delete Invoice
+
+Purpose: Remove an invoice record (also attempts to delete the associated file).
+
+Method: DELETE
+
+URL: {{baseUrl}}/api/invoices/{{invoiceId}}
+
+Headers:
+
+Authorization: Bearer {{authToken}}
+
+Body: None
+
+IV. Purchase Order Requests (/api/purchase-orders)
+
+(Similar structure to Invoices, remember authToken)
+
+Create Purchase Order
+
+Method: POST
+
+URL: {{baseUrl}}/api/purchase-orders
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: (form-data)
+
+fromAddress (Text): My Company, 456 Corp Ave
+
+vendorName (Text): Bulk Goods Co.
+
+purchaseOrderNumber (Text): PO-2023-001
+
+totalAmount (Text): 850
+
+orderDate (Text): 2023-10-26
+
+contactNumber (Text): 555-987-6543
+
+gstNumber (Text): GSTIN12345XYZ
+
+items (Text): [{"description":"Widget Type A","quantity":50,"rate":10},{"description":"Gadget Type B","quantity":20,"rate":17.5}] (Send array as JSON string)
+
+purchaseOrderFile (File): (Optional: Select your PO file)
+
+Tests (Optional): Save the ID:
+
+if (pm.response.code === 201) {
+    var jsonData = pm.response.json();
+    if (jsonData._id) {
+        pm.environment.set("poId", jsonData._id);
+        console.log("Purchase Order ID set: " + jsonData._id);
+    }
+}
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+JavaScript
+IGNORE_WHEN_COPYING_END
+
+Get All Purchase Orders
+
+Method: GET
+
+URL: {{baseUrl}}/api/purchase-orders
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: None
+
+Get Single Purchase Order
+
+Method: GET
+
+URL: {{baseUrl}}/api/purchase-orders/{{poId}}
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: None
+
+Update Purchase Order
+
+Method: PUT
+
+URL: {{baseUrl}}/api/purchase-orders/{{poId}}
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: (form-data) - Include only fields to change.
+
+vendorName (Text): Bulk Goods Co. (Updated)
+
+items (Text): [{"description":"Widget Type A","quantity":55,"rate":10.50}] (Example: Updating items)
+
+purchaseOrderFile (File): (Optional: Select a new file to replace)
+
+Delete Purchase Order
+
+Method: DELETE
+
+URL: {{baseUrl}}/api/purchase-orders/{{poId}}
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: None
+
+V. Stock Register Requests (/api/stock-register)
+
+(Similar structure, remember authToken)
+
+Create Stock Entry
+
+Method: POST
+
+URL: {{baseUrl}}/api/stock-register
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: (form-data)
+
+articleName (Text): Office Chair Model X
+
+voucherOrBillNumber (Text): INV-CHAIR-005
+
+billingDate (Text): 2023-10-25
+
+entryDate (Text): 2023-10-27
+
+rate[cost] (Text): 250 (Use bracket notation for nested objects)
+
+rate[cgst] (Text): 22.5
+
+rate[sgst] (Text): 22.5
+
+particulars[companyName] (Text): Furniture World
+
+particulars[address] (Text): 789 Comfort Lane
+
+particulars[productDetails] (Text): Ergonomic, Black Mesh
+
+receiptNumber (Text): R00123
+
+pageNumber (Text): 42
+
+stockPhoto (File): (Optional: Select your stock photo file)
+
+Tests (Optional): Save the ID:
+
+if (pm.response.code === 201) {
+    var jsonData = pm.response.json();
+    if (jsonData._id) {
+        pm.environment.set("stockEntryId", jsonData._id);
+        console.log("Stock Entry ID set: " + jsonData._id);
+    }
+}
+IGNORE_WHEN_COPYING_START
+content_copy
+download
+Use code with caution.
+JavaScript
+IGNORE_WHEN_COPYING_END
+
+Note: rate.totalRate is calculated by the backend automatically.
+
+Get All Stock Entries
+
+Method: GET
+
+URL: {{baseUrl}}/api/stock-register
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: None
+
+Get Single Stock Entry
+
+Method: GET
+
+URL: {{baseUrl}}/api/stock-register/{{stockEntryId}}
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: None
+
+Update Stock Entry
+
+Method: PUT
+
+URL: {{baseUrl}}/api/stock-register/{{stockEntryId}}
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: (form-data) - Include only fields to change.
+
+articleName (Text): Office Chair Model X (Refurbished)
+
+rate[cost] (Text): 240 (Updating rate will trigger totalRate recalculation)
+
+stockPhoto (File): (Optional: Select a new photo to replace)
+
+Delete Stock Entry
+
+Method: DELETE
+
+URL: {{baseUrl}}/api/stock-register/{{stockEntryId}}
+
+Headers: Authorization: Bearer {{authToken}}
+
+Body: None
+
+Remember to replace example data with your actual test data and select the appropriate files where needed in the form-data body section.
